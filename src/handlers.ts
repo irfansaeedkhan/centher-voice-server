@@ -195,6 +195,10 @@ export function registerHandlers(deps: HandlerDeps, socket: Socket): void {
           () => undefined,
         );
         targetSocket?.emit("user-kicked", {});
+        // N2: remove the kicked socket from the socket.io room server-side —
+        // never rely on the (possibly hostile) client to close itself, or it
+        // keeps receiving room broadcasts.
+        targetSocket?.leave(roomId);
         for (const pid of result.producerIds) {
           io.to(roomId).emit("consumer-closed", { user_id: pid });
         }

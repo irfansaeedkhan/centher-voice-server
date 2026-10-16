@@ -110,7 +110,8 @@ Create the secrets file (paste your real values — never commit this file):
 cat > ~/.centher-voice.env << 'EOF'
 PORT=3001
 ALLOWED_ORIGINS=https://centher-app.vercel.app,http://localhost:3000
-DATABASE_URL=postgresql://user:password@ep-xxx.neon.tech/dbname?sslmode=require
+# No database needed — auth is JWT now.
+AUTH_JWT_SECRET=copy-the-value-of-the-web-apps-BETTER_AUTH_SECRET-here
 MEDIASOUP_ANNOUNCED_IP=<VM_PUBLIC_IP>
 MEDIASOUP_RTC_MIN_PORT=40000
 MEDIASOUP_RTC_MAX_PORT=49999
@@ -119,9 +120,10 @@ chmod 600 ~/.centher-voice.env
 ```
 
 Notes:
-- `DATABASE_URL` must be the **non-pooled** Neon string (it says `-pooler`
-  in the pooled one — don't use that). Same database the web app uses;
-  the server only runs `SELECT` on the `session` table.
+- `AUTH_JWT_SECRET` MUST be byte-identical to the web app's
+  `BETTER_AUTH_SECRET` (Vercel → centher-app → Settings → Environment
+  Variables). The app mints voice JWTs with it; a mismatch rejects every
+  socket with `unauthorized`.
 - `MEDIASOUP_ANNOUNCED_IP` is the VM's **public IPv4** — browsers need it
   in the ICE candidates to reach the UDP media ports.
 - `ALLOWED_ORIGINS` must include your web app's exact origin, no trailing
@@ -196,8 +198,9 @@ above. (WebSocket upgrades are proxied transparently; no extra config.)
 - `sudo journalctl -u caddy --no-pager | tail -20` — HTTPS/certificate issues.
 - "origin not allowed" in the browser console → `ALLOWED_ORIGINS` doesn't
   match your Vercel URL exactly (no trailing slash).
-- `unauthorized: invalid or expired session` → `DATABASE_URL` wrong DB or
-  the user isn't logged in on the web app.
+- `unauthorized: invalid or expired voice token` → `AUTH_JWT_SECRET` doesn't
+  match the web app's `BETTER_AUTH_SECRET`, or the user isn't logged in on
+  the web app (tokens are minted per session, 15-minute expiry).
 - Container keeps restarting → `docker logs centher-voice` shows why
   (usually a missing env var — the boot check names it).
 - Rooms stuck after a crash → restart clears them (rooms are in-memory by

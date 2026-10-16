@@ -310,6 +310,10 @@ describe("voice protocol", () => {
     });
     expect(alice.emittedEvent("user-kicked").length).toBe(1);
     expect(rooms.participantCount(created.id)).toBe(1);
+    // N2: the kicked socket is removed from the socket.io room server-side —
+    // it must not keep receiving room broadcasts via a client that refuses
+    // to close itself.
+    expect(alice.joined.has(created.id)).toBe(false);
   });
 
   it("owner leave-room finishes the broadcast and destroys the room", async () => {

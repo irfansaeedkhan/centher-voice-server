@@ -24,8 +24,13 @@ export const config = {
     .map((s) => s.trim())
     .filter(Boolean),
 
-  /** Shared Neon DB (read-only session lookups for auth). */
-  databaseUrl: process.env.DATABASE_URL || "",
+  /**
+   * Voice JWT secret — MUST equal the web app's BETTER_AUTH_SECRET.
+   * Read lazily so tests can stub the env per case.
+   */
+  get authJwtSecret(): string {
+    return process.env.AUTH_JWT_SECRET || "";
+  },
 
   mediasoup: {
     /** Workers are round-robined; capped so the free-tier VM isn't starved. */
@@ -42,9 +47,9 @@ export const config = {
  * Never prints secret values.
  */
 export function validateConfig(): void {
-  if (!config.databaseUrl) {
+  if (!config.authJwtSecret) {
     throw new Error(
-      "DATABASE_URL is not set — the voice server cannot verify sessions without it.",
+      "AUTH_JWT_SECRET is not set — it must equal the web app's BETTER_AUTH_SECRET.",
     );
   }
   if (!config.allowedOrigins.length) {

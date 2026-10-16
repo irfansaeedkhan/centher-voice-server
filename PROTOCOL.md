@@ -11,9 +11,13 @@ long-polling and upgrades to WebSocket).
 - The client connects to `NEXT_PUBLIC_GQL_URL_WEBSOCKET` and sends
   `Authorization: Bearer <token>` in the polling transport's
   `extraHeaders`.
-- The token is the **Better Auth session token**. The server verifies it
-  with a read-only lookup:
-  `SELECT user_id FROM session WHERE token = $1 AND expires_at > NOW()`.
+- The token is a **short-lived voice JWT** minted by the web app
+  (`GET /api/voice/token`, Better Auth session required). Locked contract:
+  HS256, secret = `AUTH_JWT_SECRET` (must equal the app's
+  `BETTER_AUTH_SECRET`), payload
+  `{ sub: <userId>, aud: "centher-voice", iat, exp: now+15min }`.
+  The server verifies signature + audience + expiry with `jose`,
+  fail-closed.
 - On success the server emits **`connection-accepted`** — the client's
   `initSocketClient()` resolves on this event.
 - On failure the handshake is rejected → the client sees `connect_error` /

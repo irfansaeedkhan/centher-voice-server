@@ -13,7 +13,7 @@ as its own service (Oracle Cloud Always Free, $0) and the app points
 
 ```bash
 npm install
-cp .env.example .env   # fill in DATABASE_URL at minimum
+cp .env.example .env   # fill in AUTH_JWT_SECRET at minimum
 npm run build
 npm start
 # or: npm run dev (watch mode via vitest? no — dev uses ts-node; see package.json)
@@ -35,9 +35,9 @@ Health check: `curl http://localhost:3001/health`
 | `src/handlers.ts` | The wire protocol: every client emit → server action |
 | `src/rooms.ts` | Room state machine (pure, fully tested) |
 | `src/mediasoup.ts` | Worker/router/transport management (one Router per room, round-robin workers) |
-| `src/auth.ts` | Bearer session-token → read-only Better Auth `session` lookup on Neon |
+| `src/auth.ts` | Bearer JWT → HS256 verification (`aud: "centher-voice"`) |
 | `src/config.ts` | Env config + fail-fast validation |
-| `tests/` | 35 tests: rooms, auth, full protocol (mocked mediasoup) |
+| `tests/` | 39 tests: rooms, auth, full protocol (mocked mediasoup) |
 
 ## Docs
 
@@ -58,8 +58,11 @@ npm run build && npm start
 ## Security notes
 
 - Auth is fail-closed: no/invalid/expired Bearer token → socket rejected.
+- `AUTH_JWT_SECRET` MUST equal the web app's `BETTER_AUTH_SECRET` — the app
+  mints the voice JWTs with it (`GET /api/voice/token`). Mismatched secrets
+  mean every socket is rejected; check this first when debugging auth.
 - Owner-only actions (kick, talk/messaging permission, invite) are enforced
   server-side from the authenticated user id — never a client-supplied id.
+- Kicked sockets are removed from the socket.io room server-side; the
+  server never relies on the kicked client to disconnect itself.
 - No secrets in the repo; `.env.example` holds placeholders only.
-- The DB connection is used read-only (session lookups); use the
-  non-pooled Neon string.
