@@ -61,7 +61,7 @@ export async function createVoiceServer(
       const header = Array.isArray(raw) ? raw[0] : raw;
       const session = await verifyBearerToken(header);
       if (!session) {
-        return next(new Error("unauthorized: invalid or expired session"));
+        return next(new Error("unauthorized: invalid or expired voice token"));
       }
       socket.data.userId = session.userId;
       next();
