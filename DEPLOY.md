@@ -15,7 +15,7 @@ copy-paste. About 30 minutes, most of it waiting.
 |---|---|---|
 | Web app | Vercel (already live) | Next.js |
 | Voice server (this repo) | Oracle Always Free VM ($0) | Persistent sockets + WebRTC UDP need a real server |
-| Postgres | Neon (already live) | Voice server does read-only session lookups |
+| Postgres | Neon (already live) | App only — voice server is stateless (JWT auth, no DB) |
 
 The browser page is HTTPS, so the voice server gets HTTPS too via Caddy.
 You need a domain pointing at the VM — either one you own, or the free
