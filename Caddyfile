@@ -1,0 +1,6 @@
+# Caddy terminates TLS and proxies to the voice server.
+# Replace voice.example.com with your real domain (or <ip-dashes>.sslip.io).
+# Caddy handles the WebSocket upgrade transparently — no extra config needed.
+voice.example.com {
+    reverse_proxy 127.0.0.1:3001
+}

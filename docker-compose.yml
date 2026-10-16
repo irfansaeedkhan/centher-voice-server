@@ -1,0 +1,11 @@
+services:
+  voice:
+    build: .
+    container_name: centher-voice
+    restart: unless-stopped
+    # Host networking is deliberate: mediasoup picks UDP ports at runtime
+    # (MEDIASOUP_RTC_MIN_PORT-MAX_PORT). Host mode lets them through
+    # directly instead of guessing port mappings.
+    network_mode: host
+    env_file:
+      - ~/.centher-voice.env
